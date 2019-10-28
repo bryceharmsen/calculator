@@ -5,9 +5,7 @@
  */
 package package5;
 
-import java.util.Scanner;
 import java.util.Stack;
-import java.util.EmptyStackException;
 import java.util.HashMap;
 
 /**
@@ -32,6 +30,24 @@ public class Calculator {
         PRECEDENCE_ORDER = getPrecedenceOrder();
     }
     
+    //methods
+    public String getDelim() {
+        return DELIM;
+    }
+    
+    public boolean hasOperands() {
+        return !stack.isEmpty();
+    }
+    
+    public boolean hasOperators() {
+        return !operators.isEmpty();
+    }
+    
+    public void reset() {
+        stack.clear();
+        operators.clear();
+    }
+    
     private HashMap<String, Integer> getPrecedenceOrder() {
         HashMap<String, Integer> precedenceOrder = new HashMap<>();
         precedenceOrder.put("(", 4);
@@ -43,21 +59,16 @@ public class Calculator {
         return precedenceOrder;
     }
        
-    //methods
     public Double inFixCalculator(String[] inFixElements) {
         for (String elem : inFixElements) {
             try {
                 stack.push(Double.valueOf(elem));
             } catch (NumberFormatException nfe) {
-                if (elem.equals(")")) {
-                    calculateUntil("(");
-                } else {
-                    String prevOperator = operators.size() > 0 ? operators.peek() : "-";
-                    if (PRECEDENCE_ORDER.get(elem) <= PRECEDENCE_ORDER.get(prevOperator)) {
-                        calculateUntil(elem);
-                    }
-                    operators.push(elem);
+                String prevOperator = operators.size() > 0 ? operators.peek() : "-";
+                if (PRECEDENCE_ORDER.get(elem) <= PRECEDENCE_ORDER.get(prevOperator)) {
+                    calculateUntil(elem);
                 }
+                operators.push(elem);
             }
         }
         
@@ -67,8 +78,9 @@ public class Calculator {
             String operator = operators.pop();
             stack.push(calculate(left, right, operator));
         }
-        
-        return stack.pop();
+        Double result = stack.pop();
+        stack.clear();
+        return result;
     }
     
     public void calculateUntil(String precedenceFloor) {
@@ -108,49 +120,5 @@ public class Calculator {
         }
         
         return result;
-    }
-    
-    /**
-     * Runs an instance of the class, calling methods to facilitate the calculator
-     * function. This method also catches the exceptions thrown, effectively driving the object.
-     */
-    public void run() {
-        while(true) {
-            try {
-                System.out.println("Enter an expression to evaluate, " +
-                                    "hit enter to calculate: ");
-                Scanner keyboard = new Scanner(System.in);
-                String[] inFixElements = keyboard.nextLine().split(DELIM);
-                Double calculatedValue = inFixCalculator(inFixElements);
-                if (!stack.isEmpty())
-                    throw new Exception();
-                System.out.println(calculatedValue);
-            } catch (NumberFormatException e) {
-                System.out.println("File should only contain "
-                                   + "Doubles, operators, and whitespace.");
-            } catch (EmptyStackException e) {
-                System.out.println("Post Fix notation "
-                                   + "contains errors: Too many operators");
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getLocalizedMessage());
-            } catch (Exception e) {
-                System.out.println("Post Fix notation "
-                                   + "contains errors: Exception cause undetermined.\n"
-                                   + "Trace:");
-                for(StackTraceElement line : e.getStackTrace()) {
-                    System.out.println("\t" + line.toString());
-                }
-            } finally {
-                stack.clear();
-            }
-        }
-    }
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        Calculator program = new Calculator();
-        program.run();
     }
 }
