@@ -1,10 +1,7 @@
 /*
- * Project: Project 5, post fix calculator
+ * Project: CS 480 calculator
  * Author: Bryce Harmsen                        
- * Creation date: 11/21/2018                                    
- * Completion time: 5 hours
- * Honor Code: I pledge that this program represents my         
- *             own program code.
+ * Creation date: 10/26/2019
  */
 package package5;
 
@@ -13,15 +10,19 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.EmptyStackException;
+import java.util.HashMap;
+
 /**
  *
  * @author Bryce Harmsen
- * @since 11-21-2018
+ * @since 10-26-2019
  */
 public class PostFixComputer {
     //fields
     private Stack<Double> stack;
+    private Stack<String> operators;
     private final String DELIM = " ";
+    private final HashMap<String, Integer> PRECEDENCE_ORDER;
     
     //constructors
     /**
@@ -29,8 +30,22 @@ public class PostFixComputer {
      */
     public PostFixComputer() {
         stack = new Stack<>();
+        //stack.push(0.0);
+        operators = new Stack<>();
+        PRECEDENCE_ORDER = PostFixComputer.getPrecedenceOrder();
     }
     
+    private static HashMap<String, Integer> getPrecedenceOrder() {
+        HashMap<String, Integer> precedenceOrder = new HashMap<>();
+        precedenceOrder.put("(", 4);
+        precedenceOrder.put("^", 3);
+        precedenceOrder.put("*", 2);
+        precedenceOrder.put("/", 2);
+        precedenceOrder.put("+", 1);
+        precedenceOrder.put("-", 1);
+        return precedenceOrder;
+    }
+       
     //methods
     /**
      * Decides which switch statement to perform based on contents of the sTring
@@ -120,8 +135,86 @@ public class PostFixComputer {
     public String[] toPostFix(String[] inFixElements) {
         String[] postFixElements = new String[inFixElements.length];
         //TODO write inFix to postFix conversion here. Handle parenthesis.
+        for (String elem : inFixElements) {
+            /*stub for bypassing this function
+            postFixElements[i] = inFixElements[i];
+            */
+        //for each infix element
+            //if element is number
+                //push onto number stack
+            //else if not "(" or ")"
+                //if higher precedence than last symbol
+                    //push symbol onto stack
+                //else
+                    //pop numbers off stack and compute
+                    //push result back on stack?
+            //else if "("
+                //push "(" onto stack as marker
+            //else, this means we're at ")"
+                //pop and compute from stack until "(" is hit
+            try {
+                stack.push(Double.valueOf(elem));
+            } catch (NumberFormatException nfe) {
+                if (elem.equals(")")) {
+                    calculateUntil("(");
+                } else {
+                    String prevOperator = operators.size() > 0 ? operators.peek() : "-";
+                    if (PRECEDENCE_ORDER.get(elem) <= PRECEDENCE_ORDER.get(prevOperator)) {
+                        calculateUntil(elem);
+                    }
+                    operators.push(elem);
+                }
+            }
+        }
         
+        while (!operators.isEmpty()) {
+            Double right = stack.pop();
+            Double left = stack.pop();
+            String operator = operators.pop();
+            stack.push(calculate(left, right, operator));
+        }
+        
+        System.out.println(stack.pop());
         return postFixElements;
+    }
+    
+    public void calculateUntil(String precedenceFloor) {
+        Double left, right;
+        String operator = "";
+        while(!operators.isEmpty() && PRECEDENCE_ORDER.get(operator = operators.peek())
+                >= PRECEDENCE_ORDER.get(precedenceFloor)) {
+            operators.pop();
+            right = stack.pop();
+            left = stack.pop();
+            stack.push(calculate(left, right, operator));
+        }
+    }
+    
+    public Double calculate(double left, double right, String operator) {
+        double result;
+        switch(operator) {
+            case "+":
+                result = left + right;
+                break;
+            case "-":
+                result = left - right;
+                break;
+            case "*":
+                result = left * right;
+                break;
+            case "/":
+                if (right == 0)
+                    throw new IllegalArgumentException();
+                result = left / right;
+                break;
+            case "^":
+                result = Math.pow(left, right);
+                break;
+            default:
+                throw new IllegalArgumentException("A bad operator was passed.");
+        }
+        
+        return result;
     }
     
     /**
@@ -155,7 +248,8 @@ public class PostFixComputer {
                                    + "allowed.");
             } catch (Exception e) {
                 System.out.println("Post Fix notation "
-                                   + "contains errors: Too many operands.");
+                                   + "contains errors: Reached generic exception.\n"
+                                   + "Trace: " + e.getStackTrace());
             } finally {
                 stack.clear();
             }
