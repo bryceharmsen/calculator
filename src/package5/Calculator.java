@@ -59,7 +59,7 @@ public class Calculator {
         return precedenceOrder;
     }
        
-    public Double inFixCalculator(String[] inFixElements) {
+    public Double calculate(String[] inFixElements) {
         for (String elem : inFixElements) {
             try {
                 stack.push(Double.valueOf(elem));
@@ -76,14 +76,14 @@ public class Calculator {
             Double right = stack.pop();
             Double left = stack.pop();
             String operator = operators.pop();
-            stack.push(calculate(left, right, operator));
+            stack.push(calculateOnce(left, right, operator));
         }
         Double result = stack.pop();
-        stack.clear();
+
         return result;
     }
     
-    public void calculateUntil(String precedenceFloor) {
+    private void calculateUntil(String precedenceFloor) {
         Double left, right;
         String operator = "";
         while(!operators.isEmpty() && PRECEDENCE_ORDER.get(operator = operators.peek())
@@ -91,11 +91,11 @@ public class Calculator {
             operators.pop();
             right = stack.pop();
             left = stack.pop();
-            stack.push(calculate(left, right, operator));
+            stack.push(calculateOnce(left, right, operator));
         }
     }
     
-    public Double calculate(double left, double right, String operator) {
+    private Double calculateOnce(double left, double right, String operator) {
         double result;
         switch(operator) {
             case "+":
