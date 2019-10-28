@@ -5,7 +5,6 @@
  */
 package package5;
 
-import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.EmptyStackException;
@@ -29,7 +28,6 @@ public class Calculator {
      */
     public Calculator() {
         stack = new Stack<>();
-        //stack.push(0.0);
         operators = new Stack<>();
         PRECEDENCE_ORDER = getPrecedenceOrder();
     }
@@ -99,7 +97,7 @@ public class Calculator {
                 break;
             case "/":
                 if (right == 0)
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException("Dividing by zero is not allowed.");
                 result = left / right;
                 break;
             case "^":
@@ -127,9 +125,6 @@ public class Calculator {
                 if (!stack.isEmpty())
                     throw new Exception();
                 System.out.println(calculatedValue);
-            } catch (FileNotFoundException e) {
-                System.out.println("File expression.txt should be in same directory "
-                         + "as project.");
             } catch (NumberFormatException e) {
                 System.out.println("File should only contain "
                                    + "Doubles, operators, and whitespace.");
@@ -137,12 +132,14 @@ public class Calculator {
                 System.out.println("Post Fix notation "
                                    + "contains errors: Too many operators");
             } catch (IllegalArgumentException e) {
-                System.out.println("Dividing by zero is not "
-                                   + "allowed.");
+                System.out.println(e.getLocalizedMessage());
             } catch (Exception e) {
                 System.out.println("Post Fix notation "
                                    + "contains errors: Exception cause undetermined.\n"
-                                   + "Trace: " + e.getStackTrace());
+                                   + "Trace:");
+                for(StackTraceElement line : e.getStackTrace()) {
+                    System.out.println("\t" + line.toString());
+                }
             } finally {
                 stack.clear();
             }
