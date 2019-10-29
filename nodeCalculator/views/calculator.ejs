@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Calculator</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+<div>
+    <button id="Calculate">Calculate</button>
+    <input id="Expression" readonly placeholder="Enter expression here"/>
+    <span>=</span>    
+    <span id="Result"></span>
+</div>
+<br>
+<div>
+    <button class="symbol">1</button>
+    <button class="symbol">2</button>
+    <button class="symbol">3</button>
+</div>
+<div>
+    <button class="symbol">4</button>
+    <button class="symbol">5</button>
+    <button class="symbol">6</button>
+</div>
+<div>
+    <button class="symbol">7</button>
+    <button class="symbol">8</button>
+    <button class="symbol">9</button>
+</div>
+<div>
+    <button>&nbsp;&nbsp;</button>
+    <button class="symbol">0</button>
+    <button class="symbol">.</button>
+</div>
+<br>
+<div>
+    <button class="operator symbol">+</button>
+    <button class="operator symbol">-</button>
+    <button class="operator symbol">*</button>
+</div>
+<div>
+    <button class="operator symbol">/</button>
+    <button class="operator symbol">^</button>
+    <button class="operator symbol">(</button>
+</div>
+<div>
+    <button class="operator symbol">)</button>
+    <button id="Clear">Clear</button>
+</div>
+</body>
+<script>
+$('#Calculate').click(updateResult);
+
+function updateResult() {
+    let expression = $("#Expression").val();
+    let result = calculate(expression);
+    $('#Result').text(result);
+}
+
+function calculate(expression) {
+    $.ajax({
+        url: 'calculate',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            expression: expression
+        },
+        success: (data) => {
+            console.log(data);
+        }
+    });
+    return expression;
+}
+
+$('.symbol').click(appendToExpression);
+
+function appendToExpression() {
+    let thisSymbol = $(this);
+    let currExpression = $('#Expression');
+    let space = "";
+    if (thisSymbol.hasClass('operator'))
+        space = " ";
+    $('#Expression').val(currExpression.val() +
+                        space +
+                        thisSymbol.text() +
+                        space);
+}
+
+$('#Clear').click(clearExpression);
+
+function clearExpression() {
+    $('#Expression').val("");
+}
+</script>
+</html>
