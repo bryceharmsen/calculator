@@ -28,7 +28,7 @@
     <button class="symbol">9</button>
 </div>
 <div>
-    <button>&nbsp;&nbsp;</button>
+    <button class="sign symbol">+/-</button>
     <button class="symbol">0</button>
     <button class="symbol">.</button>
 </div>
@@ -75,18 +75,41 @@ function calculate(expression) {
 $('.symbol').click(appendToExpression);
 
 function appendToExpression() {
+    //TODO handle proper paranthesis: if input is ), check that last of () was a (
     let thisSymbol = $(this);
-    let currExpression = $('#Expression');
+    let expression = $('#Expression').val();
     let space = "";
-    if (thisSymbol.hasClass('operator'))
-        space = " ";
-    $('#Expression').val(currExpression.val() +
-                        space +
-                        thisSymbol.text() +
-                        space);
+    if (thisSymbol.hasClass('sign')) {
+        let expressionTerms = expression.split(' ');
+        let lastTerm = parseFloat(expressionTerms[expressionTerms.length - 1]);
+        if (lastTermIsOperand(expression)) {
+            expressionTerms[expressionTerms.length - 1] = -1 * lastTerm;
+            $('#Expression').val(expressionTerms.join(' '));
+        }
+    } else {
+        if (thisSymbol.hasClass('operator')) {
+            if (!lastTermIsOperand(expression))
+                return false;
+            space = ' ';
+        }
+        $('#Expression').val(expression +
+                            space +
+                            thisSymbol.text() +
+                            space);
+    }
 }
 
 $('#Clear').click(clearExpression);
+
+function lastTermIsOperand(expression, separator = ' ') {
+    let expressionTerms = expression.split(separator);
+    let lastTerm = expressionTerms[expressionTerms.length-1];
+    return isOperand(lastTerm);
+}
+
+function isOperand(term) {
+    return !isNaN(parseFloat(term));
+}
 
 function clearExpression() {
     $('#Expression').val("");

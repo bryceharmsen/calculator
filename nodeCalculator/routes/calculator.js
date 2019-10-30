@@ -11,6 +11,8 @@ class Calculator {
     }
 
     async evaluate(expression) {
+        //split values/operators into array
+        //run infix calculator
         return expression;
     }
 }
