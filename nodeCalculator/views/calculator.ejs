@@ -55,10 +55,10 @@ $('#Calculate').click(updateResult);
 function updateResult() {
     let expression = $("#Expression").val();
     let result = calculate(expression);
-    $('#Result').html(result);
 }
 
 function calculate(expression) {
+    let result = expression;
     if (parenCount == 0) {
         $.ajax({
             url: 'calculate',
@@ -69,12 +69,14 @@ function calculate(expression) {
             },
             success: (data) => {
                 console.log(data);
+                result = data.result;
             }
+        }).then(() => {
+            $('#Result').html(result);
         });
     } else {
-        expression = '<i>incorrect parentheses</i>';
+        $('#Result').html('<i>incorrect parentheses</i>');
     }
-    return expression;
 }
 
 let parenCount = 0;
