@@ -2,7 +2,8 @@
 <html>
 <head>
 <title>Calculator</title>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>-->
+<script src="/javascripts/jquery.js"></script>
 </head>
 <body>
 <div>
@@ -30,7 +31,7 @@
 <div>
     <button class="sign symbol">+/-</button>
     <button class="symbol">0</button>
-    <button class="symbol">.</button>
+    <button class="decimal symbol">.</button>
 </div>
 <br>
 <div>
@@ -41,10 +42,10 @@
 <div>
     <button class="operator symbol">/</button>
     <button class="operator symbol">^</button>
-    <button class="operator symbol">(</button>
+    <button class="open paren symbol">(</button>
 </div>
 <div>
-    <button class="operator symbol">)</button>
+    <button class="close paren symbol">)</button>
     <button id="Clear">Clear</button>
 </div>
 </body>
@@ -54,57 +55,119 @@ $('#Calculate').click(updateResult);
 function updateResult() {
     let expression = $("#Expression").val();
     let result = calculate(expression);
-    $('#Result').text(result);
+    $('#Result').html(result);
 }
 
 function calculate(expression) {
-    $.ajax({
-        url: 'calculate',
-        type: 'GET',
-        dataType: 'json',
-        data: {
-            expression: expression
-        },
-        success: (data) => {
-            console.log(data);
-        }
-    });
+    if (parenCount == 0) {
+        $.ajax({
+            url: 'calculate',
+            type: 'GET',
+            dataType: 'json',
+            data: {
+                expression: expression
+            },
+            success: (data) => {
+                console.log(data);
+            }
+        });
+    } else {
+        expression = '<i>incorrect parentheses</i>';
+    }
     return expression;
 }
 
-$('.symbol').click(appendToExpression);
+let parenCount = 0;
 
-function appendToExpression() {
+$('.symbol').click(invokeExpressionChangeEvent);
+
+function invokeExpressionChangeEvent() {
     //TODO handle proper paranthesis: if input is ), check that last of () was a (
     let thisSymbol = $(this);
-    let expression = $('#Expression').val();
-    let space = "";
+    let expression = $('#Expression');
     if (thisSymbol.hasClass('sign')) {
-        let expressionTerms = expression.split(' ');
-        let lastTerm = parseFloat(expressionTerms[expressionTerms.length - 1]);
-        if (lastTermIsOperand(expression)) {
-            expressionTerms[expressionTerms.length - 1] = -1 * lastTerm;
-            $('#Expression').val(expressionTerms.join(' '));
-        }
+        changeSignOfLastTermIn(expression.val());        
     } else {
-        if (thisSymbol.hasClass('operator')) {
-            if (!lastTermIsOperand(expression))
-                return false;
-            space = ' ';
+        insertInto(expression, thisSymbol);
+    }
+}
+
+function insertInto(expression, symbol) {
+    let space = '';
+    let symbolText = symbol.text();
+    if (symbol.hasClass('operator')) {
+        let lastTerm = getLastTerm(expression.val());
+        if (!isOperand(lastTerm) && !lastTerm.includes(')')) {
+            return false;
         }
-        $('#Expression').val(expression +
-                            space +
-                            thisSymbol.text() +
-                            space);
+        space = ' ';
+    } else if (symbol.hasClass('paren')) {
+        symbolText = alterParen(symbol, expression.val());
+        changeParenCount(symbol);
+    } else if (symbol.hasClass('decimal')) {
+        if (!isOperand(getLastTerm(expression.val()))) {
+            return false;
+        }
+    }
+    expression.val(expression.val() +
+                    space +
+                    symbolText +
+                    space);
+}
+
+function alterParen(symbol, expression) {
+    if (symbol.hasClass('open')) {
+        let lastTerm = getLastTerm(expression);
+        if (isOperand(lastTerm)) {
+            return ' * ( ';
+        } else if (isOperator(lastTerm)) {
+            return ' ( ';
+        }
+        return ' ( ';
+    } else {
+        if (parenCount > 0) {
+            return ' ) ';
+        } else {
+            return '';
+        }
+    }
+}
+
+function changeParenCount(symbol) {
+    if (symbol.hasClass('open')) {
+        parenCount++;
+    } else if (parenCount > 0) {
+        parenCount--;
+    }
+}
+
+function changeSignOfLastTermIn(expression) {
+    let expressionTerms = expression.split(' ');
+    let lastTerm = parseFloat(expressionTerms[expressionTerms.length - 1]);
+    if (isOperand(lastTerm)) {
+        expressionTerms[expressionTerms.length - 1] = -1 * lastTerm;
+        $('#Expression').val(expressionTerms.join(' '));
     }
 }
 
 $('#Clear').click(clearExpression);
 
-function lastTermIsOperand(expression, separator = ' ') {
+function getLastTerm(expression, separator = ' ') {
     let expressionTerms = expression.split(separator);
     let lastTerm = expressionTerms[expressionTerms.length-1];
-    return isOperand(lastTerm);
+    if (''.includes(lastTerm) && expressionTerms.length > 1) {
+        lastTerm = expressionTerms[expressionTerms.length - 2];
+    }
+    return lastTerm;
+}
+
+function isOperator(term) {
+    let operatorString = '';
+    let operators = $('.operator');
+    operators.each((i, elem) => {
+        operatorString += $(elem).text();
+    });
+    return operatorString.includes(term);
 }
 
 function isOperand(term) {
