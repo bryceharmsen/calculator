@@ -3,7 +3,8 @@ class Calculator {
         try {
             let expression = req.query.expression;
             let calc = new Calculator();
-            res.locals.result = await calc.calculate(expression);
+            let result = await calc.calculate(expression);
+            res.locals.result = await calc.filterNonNumericResults(result);
             next();
         } catch (error) {
             console.error(error);
@@ -15,6 +16,18 @@ class Calculator {
         //run infix calculator
         let terms = expression.split(' ');
         let result = await this.calculateInFix(terms);
+        return result;
+    }
+
+    async filterNonNumericResults(result) {
+        if (result === Infinity) {
+            result = "Infinity";
+        } else if (result === Number.NEGATIVE_INFINITY) {
+            result = "-Infinity";
+        } else if (result === undefined) {
+            result = "Illegal expression";
+        }
+        
         return result;
     }
 

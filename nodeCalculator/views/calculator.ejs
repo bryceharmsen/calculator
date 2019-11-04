@@ -4,50 +4,68 @@
 <title>Calculator</title>
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>-->
 <script src="/javascripts/jquery.js"></script>
+<style>
+td > button {
+    min-width:2em;
+}
+</style>
 </head>
 <body>
 <div>
-    <button id="Calculate">Calculate</button>
-    <input id="Expression" readonly placeholder="Enter expression here"/>
+    <input id="Expression" 
+           readonly
+           style="width:60%;"
+           placeholder="Enter expression here"/>
     <span>=</span>    
     <span id="Result"></span>
 </div>
 <br>
-<div>
-    <button class="symbol">1</button>
-    <button class="symbol">2</button>
-    <button class="symbol">3</button>
-</div>
-<div>
-    <button class="symbol">4</button>
-    <button class="symbol">5</button>
-    <button class="symbol">6</button>
-</div>
-<div>
-    <button class="symbol">7</button>
-    <button class="symbol">8</button>
-    <button class="symbol">9</button>
-</div>
-<div>
-    <button class="sign symbol">+/-</button>
-    <button class="symbol">0</button>
-    <button class="decimal symbol">.</button>
-</div>
+
+<% let buttonBoxSeparator = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";%>
+<table>
+    <tbody>
+        <tr>
+            <td><button class="symbol">1</button></td>
+            <td><button class="symbol">2</button></td>
+            <td><button class="symbol">3</button></td>
+            <td><%-buttonBoxSeparator%></td>
+            <td><button class="operator symbol">+</button></td>
+            <td><button class="operator symbol">-</button></td>
+            <td><button class="operator symbol">*</button></td>
+        </tr>
+
+        <tr>
+            <td><button class="symbol">4</button></td>
+            <td><button class="symbol">5</button></td>
+            <td><button class="symbol">6</button></td>
+            <td><%-buttonBoxSeparator%></td>
+            <td><button class="operator symbol">/</button></td>
+            <td><button class="operator symbol">^</button></td>
+            <td><button class="open paren symbol">(</button></td>
+        </tr>
+
+        <tr>
+            <td><button class="symbol">7</button></td>
+            <td><button class="symbol">8</button></td>
+            <td><button class="symbol">9</button></td>
+            <td><%-buttonBoxSeparator%></td>
+            <td><button class="close paren symbol">)</button></td>
+            <td colspan="2"><button id="Clear">Clear</button></td>
+        </tr>
+
+        <tr>
+            <td><button class="sign symbol">+/-</button></td>
+            <td><button class="symbol">0</button></td>
+            <td><button class="decimal symbol">.&nbsp;</button></td>
+            <td><%-buttonBoxSeparator%></td>
+            <td colspan="3"><button id="Calculate">Calculate</button></td>
+        </tr>
+    </tbody>
+</table>
+
+
 <br>
-<div>
-    <button class="operator symbol">+</button>
-    <button class="operator symbol">-</button>
-    <button class="operator symbol">*</button>
-</div>
-<div>
-    <button class="operator symbol">/</button>
-    <button class="operator symbol">^</button>
-    <button class="open paren symbol">(</button>
-</div>
-<div>
-    <button class="close paren symbol">)</button>
-    <button id="Clear">Clear</button>
-</div>
+
 </body>
 <script>
 $('#Calculate').click(updateResult);
@@ -72,6 +90,9 @@ function calculate(expression) {
                 result = data.result;
             }
         }).then(() => {
+            if (isNaN(parseFloat(result))) {
+                result = `<i>${result}</i>`;
+            }
             $('#Result').html(result);
         });
     } else {
@@ -107,7 +128,8 @@ function insertInto(expression, symbol) {
         symbolText = alterParen(symbol, expression.val());
         changeParenCount(symbol);
     } else if (symbol.hasClass('decimal')) {
-        if (!isOperand(getLastTerm(expression.val()))) {
+        if (!isOperand(getLastTerm(expression.val())) ||
+            expression.val().substring(expression.val().length - 1, expression.val().length).includes('.')) {
             return false;
         }
     }
@@ -141,6 +163,7 @@ function changeParenCount(symbol) {
     } else if (parenCount > 0) {
         parenCount--;
     }
+    console.log("Paren count: ", parenCount);
 }
 
 function changeSignOfLastTermIn(expression) {
@@ -178,6 +201,8 @@ function isOperand(term) {
 
 function clearExpression() {
     $('#Expression').val("");
+    $('#Result').html("");
+    parenCount = 0;
 }
 </script>
 </html>
