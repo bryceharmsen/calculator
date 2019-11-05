@@ -6,3 +6,23 @@ body {
 a {
   color: #00B7FF;
 }
+
+td, td > button {
+    min-width:2em;
+}
+
+input {
+  width:60%;
+}
+
+.symbol {
+  background-color: darkgray;
+}
+
+#Clear {
+  background-color: yellow;
+}
+
+#Calculate {
+  background-color: greenyellow;
+}
